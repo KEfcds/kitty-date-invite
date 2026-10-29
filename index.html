@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffd9e5">
+<title>💌 给你的小惊喜 · Novi</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎀</text></svg>">
+<style>
+:root{
+  --bg:#fff0f5; --dot:#ffd6e2;
+  --rose:#ff5c8a; --rose-deep:#e8447a; --rose-dark:#c92c63;
+  --pink-soft:#ffd9e5; --pink-mid:#ffb9cf;
+  --ink:#5c3a48; --ink-soft:#a06d80;
+  --shadow:0 10px 30px rgba(232,68,122,.18);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:"PingFang SC","Hiragino Sans GB","Yuanti SC","YouYuan","Microsoft YaHei",sans-serif;
+  color:var(--ink);
+  background-color:var(--bg);
+  background-image:radial-gradient(var(--dot) 2.2px, transparent 2.8px);
+  background-size:28px 28px;
+  min-height:100vh; min-height:100svh;
+  overflow-x:hidden;
+}
+
+/* ---------- 背景 & 装饰 ---------- */
+.bg-deco{position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden}
+.floater{position:absolute; bottom:-50px; opacity:.5; animation:rise linear infinite; user-select:none}
+@keyframes rise{to{transform:translateY(-120vh) rotate(24deg)}}
+#confetti{position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:50}
+.brand{
+  position:fixed; left:0; right:0; bottom:max(8px, env(safe-area-inset-bottom));
+  text-align:center; font-size:11px; color:var(--ink-soft); opacity:.8;
+  z-index:2; pointer-events:none; letter-spacing:.5px;
+}
+
+/* ---------- 屏幕切换 ---------- */
+.screen{
+  display:none; min-height:100vh; min-height:100svh;
+  padding:max(30px, env(safe-area-inset-top)) 20px 60px;
+  flex-direction:column; align-items:center; justify-content:center;
+  text-align:center; position:relative; z-index:1;
+}
+.screen.active{display:flex; animation:screenIn .5s ease both}
+@keyframes screenIn{from{opacity:0; transform:translateY(16px)} to{opacity:1; transform:none}}
+
+/* ---------- 通用元素 ---------- */
+.badge{
+  background:#fff; border:1.5px solid var(--pink-mid); border-radius:999px;
+  padding:6px 18px; font-size:13px; color:var(--rose-deep); font-weight:600;
+  letter-spacing:1px; box-shadow:0 3px 10px rgba(232,68,122,.12); margin:0 0 10px;
+}
+.title{font-size:clamp(24px, 6vw, 34px); font-weight:800; margin:14px 0 8px}
+.sub{color:var(--ink-soft); font-size:15px; line-height:1.8; margin:0 0 20px}
+.tiny-hint{font-size:12px; color:var(--ink-soft); margin-top:14px}
+.hidden{display:none !important}
+.float{animation:floaty 3.2s ease-in-out infinite}
+@keyframes floaty{50%{transform:translateY(-9px)}}
+
+.btn{
+  font:inherit; border:0; cursor:pointer; border-radius:999px;
+  padding:14px 34px; font-size:18px; font-weight:700; min-height:48px;
+  color:#fff; background:linear-gradient(135deg, var(--rose), var(--rose-deep));
+  box-shadow:0 6px 18px rgba(232,68,122,.35), inset 0 -3px 0 rgba(0,0,0,.08);
+  transition:transform .15s ease, box-shadow .15s ease;
+}
+.btn:active{transform:scale(.94)}
+.btn:disabled{opacity:.5; cursor:not-allowed}
+.btn-ghost{
+  background:#fff; color:var(--rose-deep); border:2px solid var(--pink-mid);
+  box-shadow:0 4px 12px rgba(232,68,122,.12);
+}
+.row-btns{display:flex; gap:12px; margin-top:18px; flex-wrap:wrap; justify-content:center}
+
+.kitty{width:min(210px, 50vw); display:block; margin:0 auto}
+.kitty-sm .kitty{width:138px}
+.eye{transform-box:fill-box; transform-origin:center; animation:blink 4.4s infinite}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)} 95%{transform:scaleY(.1)}}
+
+/* ---------- 信封 ---------- */
+.envelope{
+  position:relative; width:min(320px, 86vw); aspect-ratio:3/2;
+  margin:6px auto 22px; perspective:700px;
+}
+.env-letter{
+  position:absolute; left:5%; right:5%; top:6%; height:88%; z-index:1;
+  background:#fff; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.06);
+  display:grid; place-items:center; font-size:15px; color:var(--rose-deep);
+  padding:8px; transition:transform .55s ease .45s;
+}
+.env-pocket{
+  position:absolute; inset:0; z-index:2; border-radius:14px;
+  background:linear-gradient(160deg, #ff8fae, var(--rose-deep));
+  clip-path:polygon(0 0, 50% 48%, 100% 0, 100% 100%, 0 100%);
+}
+.env-flap{
+  position:absolute; left:0; right:0; top:0; height:55%; z-index:3;
+  background:linear-gradient(180deg, var(--rose-deep), #ff7aa0);
+  clip-path:polygon(0 0, 100% 0, 50% 100%);
+  border-radius:14px 14px 0 0; transform-origin:top center;
+  transition:transform .55s ease .05s;
+}
+.env-seal{
+  position:absolute; left:50%; top:47%; transform:translate(-50%,-50%); z-index:4;
+  width:46px; height:46px; border-radius:50%;
+  background:radial-gradient(circle at 30% 30%, #ff8aa8, var(--rose-dark));
+  color:#fff; display:grid; place-items:center; font-size:20px;
+  box-shadow:0 3px 8px rgba(201,44,99,.4); animation:pulse 1.6s infinite;
+  transition:opacity .3s;
+}
+@keyframes pulse{50%{transform:translate(-50%,-50%) scale(1.08)}}
+.envelope.open .env-flap{transform:rotateX(178deg); z-index:1}
+.envelope.open .env-seal{opacity:0}
+.envelope.open .env-letter{transform:translateY(-42%)}
+
+/* ---------- 信纸 ---------- */
+.paper{
+  width:min(520px, 94vw); background:#fffdf6; border-radius:16px;
+  border:1px solid #ffe4ec; box-shadow:var(--shadow);
+  padding:30px 24px 22px; text-align:left; position:relative;
+  background-image:repeating-linear-gradient(transparent, transparent 34px, #ffe9f0 34px, #ffe9f0 35px);
+  margin-bottom:18px; cursor:pointer;
+}
+.paper::before{content:"🎀"; position:absolute; top:-17px; left:50%; transform:translateX(-50%); font-size:30px}
+#letterBody p{margin:0; font-size:16px; line-height:35px; min-height:35px; color:var(--ink)}
+#letterBody.typing p:last-child::after{
+  content:"❤"; color:var(--rose); font-size:11px; margin-left:3px;
+  animation:caret .8s steps(1) infinite; vertical-align:2px;
+}
+@keyframes caret{50%{opacity:0}}
+.sign{text-align:right; margin:10px 0 0; font-size:16px; color:var(--rose-deep); font-weight:700; opacity:0; transition:opacity .6s}
+.sign.show{opacity:1}
+
+/* ---------- 提问 ---------- */
+.ask{font-size:clamp(26px, 7vw, 38px); font-weight:800; color:var(--rose-deep); margin:4px 0 8px}
+.ask strong{text-decoration:underline wavy var(--pink-mid) 3px; text-underline-offset:6px}
+#btnZone{
+  position:relative; width:min(520px, 94vw); min-height:180px;
+  display:flex; gap:14px; justify-content:center; align-items:flex-start;
+  flex-wrap:wrap; padding-top:8px;
+}
+#noBtn.gave-up{
+  background:linear-gradient(135deg, #ff9eb8, var(--rose));
+  color:#fff; border-color:transparent;
+}
+
+/* ---------- 计划 ---------- */
+.plan-card{
+  background:#fff; border-radius:20px; padding:20px 18px;
+  width:min(480px, 94vw); box-shadow:var(--shadow); margin:4px 0 16px; text-align:left;
+}
+.plan-q{font-weight:800; margin:8px 0 10px; font-size:16px}
+.chip-group{display:flex; flex-wrap:wrap; gap:10px; justify-content:flex-start}
+.chip{
+  font:inherit; border:2px solid var(--pink-mid); background:#fff; color:var(--ink);
+  border-radius:999px; padding:10px 18px; font-size:15px; cursor:pointer;
+  min-height:44px; transition:all .15s ease;
+}
+.chip.on{
+  background:linear-gradient(135deg, var(--rose), var(--rose-deep)); color:#fff;
+  border-color:transparent; transform:scale(1.05);
+  box-shadow:0 4px 12px rgba(232,68,122,.3); font-weight:700;
+}
+
+/* ---------- 小票 ---------- */
+.receipt{
+  width:min(360px, 92vw); background:#fff; padding:24px 22px 16px;
+  box-shadow:var(--shadow); text-align:left; font-size:14px; margin-bottom:4px;
+  transform:rotate(-1.2deg);
+}
+.zig{height:9px; width:min(360px, 92vw);
+  background:
+    linear-gradient(-45deg, #fff 5px, transparent 0) 0 0/12px 9px repeat-x,
+    linear-gradient(45deg, #fff 5px, transparent 0) 6px 0/12px 9px repeat-x;
+  filter:drop-shadow(0 6px 8px rgba(232,68,122,.12));
+}
+.r-head{text-align:center; font-weight:800; font-size:18px; letter-spacing:4px; margin:0}
+.r-sub{text-align:center; font-size:11px; color:var(--ink-soft); letter-spacing:2px; margin:4px 0 10px}
+.rrow{display:flex; justify-content:space-between; align-items:center; gap:10px; padding:8px 0; border-bottom:1px dashed var(--pink-soft)}
+.rrow span{color:var(--ink-soft)}
+.rrow b{font-weight:700; text-align:right}
+.r-note{font-size:12px; color:var(--rose-deep); margin:10px 0 0}
+.barcode{
+  height:36px; margin:14px auto 4px; width:78%;
+  background:repeating-linear-gradient(90deg,
+    var(--ink) 0 2px, transparent 2px 4px,
+    var(--ink) 4px 5px, transparent 5px 9px,
+    var(--ink) 9px 12px, transparent 12px 14px);
+}
+.r-foot{text-align:center; font-size:12px; color:var(--ink-soft); margin:4px 0 0}
+
+@media (prefers-reduced-motion: reduce){
+  .floater,.float,.eye,.env-seal{animation:none !important}
+  .screen.active{animation:none}
+  *{transition-duration:.01ms !important}
+}
+</style>
+</head>
+<body>
+
+<div class="bg-deco" id="bgDeco" aria-hidden="true"></div>
+<canvas id="confetti" aria-hidden="true"></canvas>
+
+<!-- ===== 屏幕 0：信封 ===== -->
+<section class="screen active" id="screen-envelope">
+  <p class="badge">✦ NOVI 小信使 ✦</p>
+  <div class="kitty-slot kitty-sm float" aria-hidden="true"></div>
+  <h1 class="title">叮咚——你有一封信 💌</h1>
+  <p class="sub">据说里面装着一句<br>「不好意思当面说的话」</p>
+  <div class="float">
+    <div class="envelope" id="envelope">
+      <div class="env-letter"><span>To: <b class="js-to"></b></span></div>
+      <div class="env-pocket"></div>
+      <div class="env-flap"></div>
+      <div class="env-seal">♥</div>
+    </div>
+  </div>
+  <button class="btn" id="openBtn">拆开看看 ✨</button>
+  <p class="tiny-hint">轻点一下，有惊喜</p>
+</section>
+
+<!-- ===== 屏幕 1：信纸 ===== -->
+<section class="screen" id="screen-letter">
+  <div class="paper" id="paper">
+    <div id="letterBody" class="typing"></div>
+    <p class="sign" id="sign">—— <span class="js-from"></span></p>
+  </div>
+  <button class="btn hidden" id="nextBtn">然后呢？👉</button>
+  <p class="tiny-hint" id="typeHint">轻触信纸可以跳过哦</p>
+</section>
+
+<!-- ===== 屏幕 2：提问 ===== -->
+<section class="screen" id="screen-ask">
+  <div class="kitty-slot" aria-hidden="true"></div>
+  <h1 class="title">所以……</h1>
+  <p class="ask">要不要<strong>一起吃饭</strong>呀？</p>
+  <p class="sub">散步、看电影、撸猫都行<br>反正……想和你多待一会儿 🙈</p>
+  <div id="btnZone">
+    <button class="btn" id="yesBtn">好呀好呀！🎀</button>
+    <button class="btn btn-ghost" id="noBtn">让我想想 🙀</button>
+  </div>
+  <p class="tiny-hint">（悄悄说：选左边的人，这周运气会变好哦 ✨）</p>
+</section>
+
+<!-- ===== 屏幕 3：计划 ===== -->
+<section class="screen" id="screen-plan">
+  <div class="kitty-slot kitty-sm" aria-hidden="true"></div>
+  <h1 class="title">太好了！！🎉🎉</h1>
+  <p class="sub">那……把小约会安排上？</p>
+  <div class="plan-card">
+    <p class="plan-q">💗 什么时候？</p>
+    <div class="chip-group" id="groupTime">
+      <button class="chip">这周六</button>
+      <button class="chip">这周日</button>
+      <button class="chip">挑个晴天</button>
+      <button class="chip">你定嘛</button>
+    </div>
+    <p class="plan-q">🧋 去做点什么？</p>
+    <div class="chip-group" id="groupAct">
+      <button class="chip">吃火锅 🍲</button>
+      <button class="chip">看电影 🎬</button>
+      <button class="chip">逛公园 🌷</button>
+      <button class="chip">奶茶＋遛弯 🧋</button>
+      <button class="chip">都听你的 🐾</button>
+    </div>
+  </div>
+  <button class="btn" id="confirmBtn" disabled>选好啦，就去约定 💖</button>
+</section>
+
+<!-- ===== 屏幕 4：小票 ===== -->
+<section class="screen" id="screen-done">
+  <h1 class="title">约定达成 ✨</h1>
+  <p class="sub">已经被记在小本本上啦 📝</p>
+  <div class="zig"></div>
+  <div class="receipt">
+    <p class="r-head">♡ 幸 福 小 票 ♡</p>
+    <p class="r-sub">NOVI HEART MART</p>
+    <div class="rrow"><span>约会对象</span><b class="js-to"></b></div>
+    <div class="rrow"><span>时间</span><b id="rTime">—</b></div>
+    <div class="rrow"><span>活动</span><b id="rAct">—</b></div>
+    <div class="rrow"><span>期待值</span><b>＋10086</b></div>
+    <div class="rrow"><span>状态</span><b>已收藏进心里 ✓</b></div>
+    <p class="r-note" id="rNote">备注：TA 已经开始偷偷期待啦</p>
+    <div class="barcode"></div>
+    <p class="r-foot">谢谢惠顾，见面有效 💗</p>
+  </div>
+  <div class="zig"></div>
+  <div class="row-btns">
+    <button class="btn btn-ghost" id="againBtn">再看一遍 💌</button>
+  </div>
+  <p class="tiny-hint">（截图发给 TA，就算正式答应啦 📱）</p>
+</section>
+
+<p class="brand">✨ Novi helps you create new moments.</p>
+
+<script>
+/* ================= 参数自定义 =================
+   链接后加 ?to=收信人名字&from=你的署名 即可换称呼
+   例如 index.html?to=小熊&from=偷偷喜欢你的隔壁同学 */
+var params = new URLSearchParams(location.search);
+var TO = params.get('to') || '最特别的你';
+var FROM = params.get('from') || '偷偷喜欢你的 TA';
+document.querySelectorAll('.js-to').forEach(function(el){ el.textContent = TO; });
+document.querySelectorAll('.js-from').forEach(function(el){ el.textContent = FROM; });
+
+/* ================= 凯蒂猫 ================= */
+var KITTY =
+  '<svg viewBox="0 0 200 185" class="kitty" role="img" aria-label="一只戴蝴蝶结的小猫">' +
+  '<path d="M38 62 L22 12 L84 40 Z" fill="#fff" stroke="#5c3a48" stroke-width="4" stroke-linejoin="round"/>' +
+  '<path d="M162 62 L178 12 L116 40 Z" fill="#fff" stroke="#5c3a48" stroke-width="4" stroke-linejoin="round"/>' +
+  '<path d="M42 52 L33 27 L62 42 Z" fill="#ffd9e5"/>' +
+  '<path d="M158 52 L167 27 L138 42 Z" fill="#ffd9e5"/>' +
+  '<ellipse cx="100" cy="102" rx="80" ry="68" fill="#fff" stroke="#5c3a48" stroke-width="4"/>' +
+  '<g stroke="#c92c63" stroke-width="3" fill="#ff5c8a" stroke-linejoin="round">' +
+    '<path d="M36 28 C16 14 2 22 9 36 C2 50 18 56 36 42 Z"/>' +
+    '<path d="M36 28 C56 14 70 22 63 36 C70 50 54 56 36 42 Z"/>' +
+    '<circle cx="36" cy="35" r="7"/>' +
+  '</g>' +
+  '<g stroke="#5c3a48" stroke-width="3" stroke-linecap="round">' +
+    '<path d="M12 92 L44 98"/><path d="M8 108 L44 108"/><path d="M12 124 L44 118"/>' +
+    '<path d="M188 92 L156 98"/><path d="M192 108 L156 108"/><path d="M188 124 L156 118"/>' +
+  '</g>' +
+  '<ellipse cx="52" cy="122" rx="11" ry="6" fill="#ffc2d4"/>' +
+  '<ellipse cx="148" cy="122" rx="11" ry="6" fill="#ffc2d4"/>' +
+  '<ellipse class="eye" cx="70" cy="98" rx="7" ry="10" fill="#3d2833"/>' +
+  '<ellipse class="eye" cx="130" cy="98" rx="7" ry="10" fill="#3d2833"/>' +
+  '<ellipse cx="100" cy="114" rx="8" ry="6" fill="#ffcf4d" stroke="#e8a20c" stroke-width="2"/>' +
+  '<path d="M84 128 Q92 137 100 128 Q108 137 116 128" fill="none" stroke="#5c3a48" stroke-width="3.5" stroke-linecap="round"/>' +
+  '</svg>';
+document.querySelectorAll('.kitty-slot').forEach(function(el){ el.innerHTML = KITTY; });
+
+/* ================= 飘浮爱心背景 ================= */
+(function(){
+  var deco = document.getElementById('bgDeco');
+  var icons = ['💗','🎀','🤍','💕','🐾'];
+  for (var i = 0; i < 16; i++){
+    var s = document.createElement('span');
+    s.className = 'floater';
+    s.textContent = icons[Math.floor(Math.random() * icons.length)];
+    s.style.left = (Math.random() * 100) + 'vw';
+    s.style.fontSize = (13 + Math.random() * 20) + 'px';
+    s.style.animationDuration = (10 + Math.random() * 12) + 's';
+    s.style.animationDelay = (-Math.random() * 20) + 's';
+    deco.appendChild(s);
+  }
+})();
+
+/* ================= 屏幕切换 ================= */
+function show(id){
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+/* ================= 撒花 ================= */
+var cvs = document.getElementById('confetti');
+var ctx = cvs.getContext('2d');
+var parts = [], rafId = null;
+var COLORS = ['#ff5c8a','#ffb9cf','#ffd93d','#a8e6cf','#d4a5ff','#ffffff'];
+function fitCanvas(){
+  var dpr = Math.min(window.devicePixelRatio || 1, 2);
+  cvs.width = innerWidth * dpr; cvs.height = innerHeight * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+fitCanvas();
+addEventListener('resize', fitCanvas);
+function heartPath(s){
+  ctx.beginPath();
+  ctx.moveTo(0, s * 0.35);
+  ctx.bezierCurveTo(s * 0.55, -s * 0.35, s * 1.15, s * 0.4, 0, s);
+  ctx.bezierCurveTo(-s * 1.15, s * 0.4, -s * 0.55, -s * 0.35, 0, s * 0.35);
+  ctx.closePath();
+}
+function spawnBurst(x, y, n){
+  for (var i = 0; i < n; i++){
+    var a = Math.random() * Math.PI * 2, sp = 2 + Math.random() * 5.5;
+    parts.push({
+      x:x, y:y, vx:Math.cos(a) * sp, vy:Math.sin(a) * sp - 3.2,
+      g:.2, rot:Math.random() * 6.28, vr:(Math.random() - .5) * .25,
+      size:5 + Math.random() * 7, life:1, decay:.006 + Math.random() * .01,
+      color:COLORS[Math.floor(Math.random() * COLORS.length)],
+      isHeart:Math.random() < .55
+    });
+  }
+  if (!rafId) rafId = requestAnimationFrame(tick);
+}
+function tick(){
+  ctx.clearRect(0, 0, innerWidth, innerHeight);
+  parts.forEach(function(p){
+    p.x += p.vx; p.vy += p.g; p.y += p.vy;
+    p.rot += p.vr; p.life -= p.decay;
+    ctx.save();
+    ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+    ctx.globalAlpha = Math.max(p.life, 0);
+    ctx.fillStyle = p.color;
+    if (p.isHeart){ heartPath(p.size); ctx.fill(); }
+    else { ctx.beginPath(); ctx.arc(0, 0, p.size * .45, 0, 6.29); ctx.fill(); }
+    ctx.restore();
+  });
+  parts = parts.filter(function(p){ return p.life > 0 && p.y < innerHeight + 40; });
+  if (parts.length){ rafId = requestAnimationFrame(tick); }
+  else { rafId = null; ctx.clearRect(0, 0, innerWidth, innerHeight); }
+}
+function celebrate(){
+  spawnBurst(innerWidth / 2, innerHeight * .35, 80);
+  setTimeout(function(){ spawnBurst(innerWidth * .25, innerHeight * .3, 40); }, 350);
+  setTimeout(function(){ spawnBurst(innerWidth * .75, innerHeight * .3, 40); }, 700);
+}
+
+/* ================= 信封 ================= */
+var env = document.getElementById('envelope');
+var openBtn = document.getElementById('openBtn');
+var opened = false;
+openBtn.addEventListener('click', function(){
+  if (opened) return; opened = true;
+  env.classList.add('open');
+  openBtn.textContent = '拆信中……';
+  openBtn.disabled = true;
+  spawnBurst(innerWidth / 2, innerHeight * .42, 24);
+  setTimeout(function(){ show('screen-letter'); typeNext(); }, 950);
+});
+
+/* ================= 打字机信件 ================= */
+var LINES = [
+  '见字如面 🐾',
+  '有些话呀，',
+  '当面说会脸红，打字又怕不够郑重。',
+  '所以我把它偷偷装进了这封信——',
+  '其实，我真的很期待见到你。',
+  '那么……可以赏脸见一面吗？'
+];
+var body = document.getElementById('letterBody');
+var sign = document.getElementById('sign');
+var nextBtn = document.getElementById('nextBtn');
+var typeHint = document.getElementById('typeHint');
+var li = 0, ci = 0, p = null, typeTimer = null, typingDone = false;
+function typeNext(){
+  if (li >= LINES.length){ finishTyping(); return; }
+  if (ci === 0){ p = document.createElement('p'); body.appendChild(p); }
+  p.textContent = LINES[li].slice(0, ++ci);
+  if (ci >= LINES[li].length){ li++; ci = 0; typeTimer = setTimeout(typeNext, 320); }
+  else { typeTimer = setTimeout(typeNext, 62); }
+}
+function finishTyping(){
+  if (typingDone) return; typingDone = true;
+  clearTimeout(typeTimer);
+  body.classList.remove('typing');
+  body.innerHTML = '';
+  LINES.forEach(function(t){ var el = document.createElement('p'); el.textContent = t; body.appendChild(el); });
+  sign.classList.add('show');
+  nextBtn.classList.remove('hidden');
+  typeHint.textContent = '（信读完啦，往下走 👇）';
+}
+document.getElementById('paper').addEventListener('click', function(){ if (!typingDone) finishTyping(); });
+nextBtn.addEventListener('click', function(){ show('screen-ask'); });
+
+/* ================= 会躲人的按钮 ================= */
+var yesBtn = document.getElementById('yesBtn');
+var noBtn = document.getElementById('noBtn');
+var zone = document.getElementById('btnZone');
+var dodges = 0, lastX = -999, lastY = -999, gaveUp = false;
+var NO_LABELS = ['让我想想 🙀','再想想？🤔','真的不要吗？😿','不许选这个啦！😾','好吧…我投降 🥺','呜……那只好选好呀了 💘'];
+function dodge(e){
+  if (dodges >= 5) return;
+  e.preventDefault();
+  dodges++;
+  if (noBtn.style.position !== 'absolute') noBtn.style.position = 'absolute';
+  var maxX = Math.max(zone.clientWidth - noBtn.offsetWidth, 0);
+  var maxY = Math.max(zone.clientHeight - noBtn.offsetHeight, 0);
+  var nx, ny, tries = 0;
+  do {
+    nx = Math.random() * maxX; ny = Math.random() * maxY; tries++;
+  } while (tries < 12 && Math.hypot(nx - lastX, ny - lastY) < 70);
+  lastX = nx; lastY = ny;
+  noBtn.style.left = nx + 'px';
+  noBtn.style.top = ny + 'px';
+  noBtn.textContent = NO_LABELS[Math.min(dodges, NO_LABELS.length - 1)];
+  yesBtn.style.transform = 'scale(' + (1 + Math.min(dodges, 5) * .09) + ')';
+  if (dodges === 5){
+    noBtn.classList.add('gave-up');
+    noBtn.textContent = NO_LABELS[5];
+  }
+}
+noBtn.addEventListener('pointerenter', dodge);
+noBtn.addEventListener('pointerdown', dodge);
+noBtn.addEventListener('click', function(e){
+  if (dodges < 5){ e.preventDefault(); return; }
+  gaveUp = true;
+  goPlan();
+});
+yesBtn.addEventListener('click', goPlan);
+function goPlan(){
+  show('screen-plan');
+  spawnBurst(innerWidth / 2, innerHeight * .35, 42);
+}
+
+/* ================= 计划选择 ================= */
+var pickedTime = null, pickedAct = null;
+var confirmBtn = document.getElementById('confirmBtn');
+function bindChips(groupId, setter){
+  var group = document.getElementById(groupId);
+  group.addEventListener('click', function(e){
+    var chip = e.target.closest('.chip');
+    if (!chip) return;
+    group.querySelectorAll('.chip').forEach(function(c){ c.classList.remove('on'); });
+    chip.classList.add('on');
+    setter(chip.textContent);
+    confirmBtn.disabled = !(pickedTime && pickedAct);
+  });
+}
+bindChips('groupTime', function(v){ pickedTime = v; });
+bindChips('groupAct', function(v){ pickedAct = v; });
+
+confirmBtn.addEventListener('click', function(){
+  if (!pickedTime || !pickedAct) return;
+  document.getElementById('rTime').textContent = pickedTime;
+  document.getElementById('rAct').textContent = pickedAct;
+  document.getElementById('rNote').textContent = gaveUp
+    ? '备注：由「让我想想」良心发现达成 💘'
+    : '备注：TA 已经开始偷偷期待啦';
+  show('screen-done');
+  celebrate();
+});
+
+/* ================= 再看一遍 ================= */
+document.getElementById('againBtn').addEventListener('click', function(){ location.reload(); });
+</script>
+</body>
+</html>
